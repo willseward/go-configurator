@@ -1,1 +1,4 @@
 go-configurator
+/pkg
+/src
+/samples/dist/
