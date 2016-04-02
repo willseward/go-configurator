@@ -29,3 +29,8 @@ go get ./...
 go install .
 ./go-configurator update --templates=samples/templates --master --temp=samples/dist --test 
 ```
+
+## Future 
+
+- [ ] YAML files for variables in templates
+- [ ] Intervalic updates
