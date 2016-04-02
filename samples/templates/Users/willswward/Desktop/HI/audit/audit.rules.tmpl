@@ -1,0 +1,6 @@
+{{ range .Rules }}
+-w {{ .filePath }} -p rwxa
+{{ end }}
+
+-a entry,always -S chmod
+-a entry,always -S chown
