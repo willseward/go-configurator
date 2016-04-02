@@ -42,8 +42,6 @@ func findAndCreateConfigurationFileRecords(templateDir string) (files []Configur
     files = make([]ConfigurationFile, 0)
     
     templateDirComponents := strings.Split(templateDir, "/")
-
-    log.Println(templateDirComponents)
     
     filepath.Walk(templateDir, func(path string, f os.FileInfo, err error) error {
         if !f.Mode().IsDir() {

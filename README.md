@@ -25,9 +25,18 @@ GLOBAL OPTIONS:
 ## Building
 
 ```
-go get ./...
-go install .
-./go-configurator update --templates=samples/templates --master --temp=samples/dist --test 
+$ go get ./...
+$ go install .
+$ ./go-configurator update --templates=samples/templates --master --temp=samples/dist --test 
+```
+
+## Building from a Dockerfile
+
+```
+$ docker build -t configurator .
+$ cd sample
+$ docker build -t config-sample .
+$ docker run config-sample update --templates=/var/go-configurator/templates --temp=dist/ --test
 ```
 
 ## Future 
