@@ -1,6 +1,6 @@
 # go-configurator
 
-A simple tool to aide in the battle of configuration file synchronization
+A simple tool to aid in the battle of configuration file synchronization
 
 ## Usage
 
