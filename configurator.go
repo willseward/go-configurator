@@ -11,31 +11,33 @@ import (
     "path/filepath"
         
     "github.com/codegangsta/cli"
+    "gopkg.in/yaml.v2"
 )
 
+// ConfigurationFile holds the record for a config file that should be parsed into 
+// the fs
 type ConfigurationFile struct {
     templateFilePath string
     configDestinationDir string
     configFileName string
 }
 
+// Configurator is the object that does the configuring
 type Configurator struct {
-    configDir string
+    buildDir string
     configFiles []ConfigurationFile
-    master bool
+    config map[interface{}]interface{}
 }
 
-type Rule struct {
-    filePath string
-}
-
+// Config is a type for the data in the templates
 type Config struct {
     Master bool
     TcpPort int
     RemoteAddress string
-    Rules []Rule
 }
 
+// findAndCreateConfigurationFileRecords looks at the template directory and creates the ConfigurationFile
+// objects
 func findAndCreateConfigurationFileRecords(templateDir string) (files []ConfigurationFile, err error) {
     // Will create the ConfigurationFile array 
     
@@ -43,6 +45,7 @@ func findAndCreateConfigurationFileRecords(templateDir string) (files []Configur
     
     templateDirComponents := strings.Split(templateDir, "/")
     
+    // Walk through the template file dir
     filepath.Walk(templateDir, func(path string, f os.FileInfo, err error) error {
         if !f.Mode().IsDir() {
             if strings.HasSuffix(path, ".tmpl") {
@@ -72,14 +75,16 @@ func findAndCreateConfigurationFileRecords(templateDir string) (files []Configur
     return files, nil
 }
 
-func NewConfigurator(configDir string, configFiles []ConfigurationFile, master bool) (*Configurator) {
+// NewConfigurator creates and returns a new Configurator
+func NewConfigurator(buildDir string, configFiles []ConfigurationFile, config map[interface{}]interface{}) (*Configurator) {
     return &Configurator{
-        configDir: configDir,
+        buildDir: buildDir,
         configFiles: configFiles,
-        master: master,
+        config: config,
     }
 }
 
+// getTextForFile returns the text contents of a file
 func getTextForFile(fileName string) (data string, err error) {
     if bytes, err := ioutil.ReadFile(fileName); err != nil {
         return "", err
@@ -89,6 +94,7 @@ func getTextForFile(fileName string) (data string, err error) {
     }
 }
 
+// rebuildConfig parses and saves a template record to the temp dir
 func (c *Configurator) rebuildConfig(file ConfigurationFile) (path string, err error) {
     // Get file text
     configText, _ := getTextForFile(file.templateFilePath)
@@ -99,12 +105,9 @@ func (c *Configurator) rebuildConfig(file ConfigurationFile) (path string, err e
         log.Println("[Configurator] Error pasring template:", file.configFileName)
         return "", err
     }
-    
-    // Create Data Structures
-    configData := Config{Master: c.master, TcpPort: 4589}
-    
+
     // Create the file
-    dir := filepath.Join(c.configDir, file.configDestinationDir)
+    dir := filepath.Join(c.buildDir, file.configDestinationDir)
     if err = os.MkdirAll(dir, 0755); err != nil {
         log.Println("[Configurator] temp directory not writable")
         return "", err
@@ -122,7 +125,7 @@ func (c *Configurator) rebuildConfig(file ConfigurationFile) (path string, err e
     defer f.Close()
     
     // Process the templates
-    err = configTemplate.Execute(f, configData)
+    err = configTemplate.Execute(f, c.config)
     if err != nil {
         log.Println("[Configurator] Error while executing template:", file.configFileName)
         return "", err
@@ -133,6 +136,8 @@ func (c *Configurator) rebuildConfig(file ConfigurationFile) (path string, err e
     return path, err
 }
 
+// createFileIfNotExistsAndIsRegularOrError checks and makes sure a file exists and is regular. If not,
+// it will be created. This function also checks the dir structure.
 func createFileIfNotExistsAndIsRegularOrError(filePath string) error {
     dir, _ := filepath.Split(filePath)
     stat, err := os.Stat(filePath)
@@ -160,6 +165,7 @@ func createFileIfNotExistsAndIsRegularOrError(filePath string) error {
     return nil
 }
 
+// replaceConfig updates the active config files on the system.
 func (c *Configurator) replaceConfig(file ConfigurationFile, newConfigFilePath string) error {
     
     // Check both files exist and are regular
@@ -205,9 +211,26 @@ func (c *Configurator) replaceConfig(file ConfigurationFile, newConfigFilePath s
     log.Println("[Configurator] Successfully replace config file:", destFilePath)
     
     return nil
-     
 }
 
+func yamlToMap(filename string) (config map[interface{}]interface{}, err error) {
+    fileContents, err := getTextForFile(filename) 
+    if err != nil {
+        return nil, err
+    }
+    
+    // The config object
+    m := make(map[interface{}]interface{})
+    
+    err = yaml.Unmarshal([]byte(fileContents), &m)
+    if err != nil {
+        return nil, err
+    }
+    
+    return m, nil
+}
+
+// SetupCliForConfigurator sets up the cli to respond to hooks for the Configurator
 func SetupCliForConfigurator(app *cli.App) {    
     
     commands := []cli.Command {
@@ -219,16 +242,24 @@ func SetupCliForConfigurator(app *cli.App) {
                 
                 dist := c.String("temp")
                 templates := c.String("templates")
-                master := c.Bool("master")
                 test := c.Bool("test")
+                configYml := c.String("config")
+                // beforeFile := c.String("before")
+                // afterFile := c.String("after")
                 
                 files, err := findAndCreateConfigurationFileRecords(templates)
                 if err != nil {
                     log.Println(err)
                     log.Fatal("[Configurator] Problem getting templates")
                 }
+                
+                config, err := yamlToMap(configYml)
+                if err != nil {
+                    log.Println(err)
+                    log.Fatal("[Configurator] Problem getting config from yml file")
+                }
                                 
-                configurator := NewConfigurator(dist, files, master)
+                configurator := NewConfigurator(dist, files, config)
                 
                 if err := configurator.BuildAndUpdateConfig(test); err != nil {
                     log.Println(err)
@@ -241,21 +272,32 @@ func SetupCliForConfigurator(app *cli.App) {
             Flags: []cli.Flag{
                 cli.StringFlag{
                     Name: "templates",
-                    Value: "/var/dockeraudit/templates",
+                    Value: "/var/go-configurator/templates",
                     Usage: "the template file for auditd rules",
                 },
                 cli.StringFlag{
                     Name: "temp",
-                    Value: "/tmp/dockeraudit/dist",
+                    Value: "/tmp/go-configurator/dist",
                     Usage: "temp directory for resolved configuration files",
                 },
-                cli.BoolFlag{
-                    Name: "master",
-                    Usage: "whether or not this server should be configured as a master reporting server",
+                cli.StringFlag{
+                    Name: "config",
+                    Value: "/var/go-configurator/config.yml",
+                    Usage: "the YAML config file to be used for configuration",  
                 },
                 cli.BoolFlag{
                     Name: "test",
                     Usage: "do not export config files to final location, just build them",
+                },
+                cli.StringFlag{
+                    Name: "before",
+                    Value: "",
+                    Usage: "the script to run before the configurator starts",
+                },
+                cli.StringFlag{
+                    Name: "after",
+                    Value: "",
+                    Usage: "the script to run after the configurator finishes",
                 },
             },
         },
@@ -264,11 +306,12 @@ func SetupCliForConfigurator(app *cli.App) {
     app.Commands = append(app.Commands, commands...)
 }
  
+// BuildAndUpdateConfig runs the configurator
 func (c *Configurator) BuildAndUpdateConfig(test bool) (err error) {
     // Check that dir exists
-    if _, err := os.Stat(c.configDir); os.IsNotExist(err) {
+    if _, err := os.Stat(c.buildDir); os.IsNotExist(err) {
         // It doesn't, so create it now
-        if err = os.MkdirAll(c.configDir, 0755); err != nil {                    
+        if err = os.MkdirAll(c.buildDir, 0755); err != nil {                    
             log.Println("[Configurator] Could not create directory for temp files")
             return err
         }
