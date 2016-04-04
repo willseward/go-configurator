@@ -7,6 +7,7 @@ FROM golang:1.6
 MAINTAINER William Ward <wills.e.ward@tcu.edu>
 
 ONBUILD ADD ./templates /var/go-configurator/templates
+ONBUILD ADD ./config.yml /var/go-configurator/config.yml
 
 # Build binary
 RUN go get github.com/willseward/go-configurator
