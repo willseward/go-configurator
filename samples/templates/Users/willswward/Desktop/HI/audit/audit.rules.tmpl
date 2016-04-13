@@ -1,5 +1,4 @@
-{{ range .Rules }}
--w {{ .filePath }} -p rwxa
+{{ range .Rules }}-w {{ .FilePath }} {{ .Checks }}
 {{ end }}
 
 -a entry,always -S chmod

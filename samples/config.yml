@@ -2,5 +2,9 @@ Master: true
 RemoteAddress: 10.0.0.0
 TcpPort: 80
 Rules:
-    - filePath: /etc
-    - filePath: /var
+    - FilePath: /etc/sysconfig/docker
+      Checks: rwxa
+    - FilePath: /etc/passwd
+      Checks: -p rwxa 
+    - FilePath: /etc/shadow
+      Checks: -p rwxa 
