@@ -24,6 +24,8 @@ type Configurator struct {
     buildDir string
     configFiles []ConfigurationFile
     config map[interface{}]interface{}
+    beforeScriptFilePath string
+    afterScriptFilePath string
 }
 
 // NewConfigurator creates and returns a new Configurator
@@ -49,8 +51,6 @@ func SetupCliForConfigurator(app *cli.App) {
                 templates := c.String("templates")
                 test := c.Bool("test")
                 configYml := c.String("config")
-                // beforeFile := c.String("before")
-                // afterFile := c.String("after")
                 
                 files, err := findAndCreateConfigurationFileRecords(templates)
                 if err != nil {
@@ -65,12 +65,30 @@ func SetupCliForConfigurator(app *cli.App) {
                 }
                                                 
                 configurator := NewConfigurator(dist, files, config)
+
+                if beforeFile := c.String("before"); beforeFile != "" {
+                    configurator.beforeScriptFilePath = beforeFile
+                }
+
+                if afterFile := c.String("after"); afterFile != "" {
+                    configurator.afterScriptFilePath = afterFile
+                }
+
+                if err := configurator.RunBeforeScript(); err != nil {
+                    log.Println(err)
+                    log.Fatal("[Configurator] Problem running before script")
+                }
                 
                 if err := configurator.BuildAndUpdateConfig(test); err != nil {
                     log.Println(err)
                     log.Fatal("[Configurator] Problem updating config")
                 } else {
                     log.Println("[Configurator] Success! Built", len(files), "config files")
+                }
+
+                if err := configurator.RunAfterScript(); err != nil {
+                    log.Println(err)
+                    log.Fatal("[Configurator] Problem running after script")
                 }
                 
             },
@@ -109,6 +127,14 @@ func SetupCliForConfigurator(app *cli.App) {
     }
     
     app.Commands = append(app.Commands, commands...)
+}
+
+func (c *Configurator) RunBeforeScript() error {
+    return nil
+}
+
+func (c *Configurator) RunAfterScript() error {
+    return nil
 }
 
 // BuildAndUpdateConfig runs the configurator

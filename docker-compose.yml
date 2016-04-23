@@ -1,0 +1,5 @@
+configurator:
+  build: .
+  volumes:
+    - "./samples/dist:/tmp/dist"
+  command: update --temp=dist/

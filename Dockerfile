@@ -1,4 +1,4 @@
-# Docker Auditd Exporter - Host Agent
+# Docker go-configurator
 # Wills Ward
 # 03/31/16
 
@@ -13,6 +13,5 @@ ONBUILD ADD ./config.yml /var/go-configurator/config.yml
 RUN go get github.com/willseward/go-configurator
 RUN go get -v ./...
 RUN go install -v github.com/willseward/go-configurator
-EXPOSE 80
 
 ENTRYPOINT ["/go/bin/go-configurator"]

@@ -36,7 +36,7 @@ $ ./go-configurator update --templates=samples/templates --master --temp=samples
 $ docker build -t configurator .
 $ cd samples
 $ docker build -t config-sample .
-$ docker run config-sample update --temp=dist/ --test
+$ docker run -v `pwd`/samples/dist:/tmp/dist config-sample update --temp=/tmp/dist --test
 ```
 
 ## Future 
