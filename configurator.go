@@ -115,12 +115,12 @@ func SetupCliForConfigurator(app *cli.App) {
                 },
                 cli.StringFlag{
                     Name: "before",
-                    Value: "",
+                    Value: "/var/go-configurator/before.sh",
                     Usage: "the script to run before the configurator starts",
                 },
                 cli.StringFlag{
                     Name: "after",
-                    Value: "",
+                    Value: "/var/go-configurator/after.sh",
                     Usage: "the script to run after the configurator finishes",
                 },
             },
@@ -131,7 +131,7 @@ func SetupCliForConfigurator(app *cli.App) {
 }
 
 func (c *Configurator) RunBeforeScript() error {
-    if c.beforeScriptFilePath != "" {
+    if c.beforeScriptFilePath != "" && fileExists(c.beforeScriptFilePath) {
         log.Println("[Configurator] Running before script")
         if out, err := exec.Command(c.beforeScriptFilePath).Output(); err != nil {
             return err
@@ -145,7 +145,7 @@ func (c *Configurator) RunBeforeScript() error {
 }
 
 func (c *Configurator) RunAfterScript() error {
-    if c.afterScriptFilePath != "" {
+    if c.afterScriptFilePath != "" && fileExists(c.afterScriptFilePath) {
         log.Println("[Configurator] Running after script")
         if out, err := exec.Command(c.afterScriptFilePath).Output(); err != nil {
             return err
@@ -268,10 +268,10 @@ func (c *Configurator) rebuildConfig(file ConfigurationFile) (path string, err e
 func (c *Configurator) replaceConfig(file ConfigurationFile, newConfigFilePath string) error {
     
     // Check both files exist and are regular
-    if err := createFileIfNotExistsAndIsRegularOrError(newConfigFilePath); err != nil {
-        log.Println("[Configurator] Source file error")
-        return err
-    }
+    // if err := createFileIfNotExistsAndIsRegularOrError(newConfigFilePath); err != nil {
+    //     log.Println("[Configurator] Source file error")
+    //     return err
+    // }
         
     destFilePath := filepath.Join(file.configDestinationDir, file.configFileName)
     if err := createFileIfNotExistsAndIsRegularOrError(destFilePath); err != nil {

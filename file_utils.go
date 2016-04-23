@@ -26,6 +26,15 @@ func yamlToMap(filename string) (config map[interface{}]interface{}, err error) 
     return m, nil
 }
 
+func fileExists(path string) bool {
+    if _, err := os.Stat(path); err != nil {
+
+        return false
+    }
+
+    return true
+}
+
 func ensureDirectoryCreated(directoryPath string) error {
     _, err := os.Stat(directoryPath)
     
