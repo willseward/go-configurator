@@ -43,4 +43,4 @@ $ docker run -v `pwd`/samples/dist:/tmp/dist config-sample update --temp=/tmp/di
 
 - [X] YAML files for variables in templates
 - [ ] Intervalic updates
-- [ ] Before and After scripts
+- [X] Before and After scripts

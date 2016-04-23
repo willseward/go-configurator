@@ -4,6 +4,7 @@ import (
     "os"
     "io"
     "log"
+    "os/exec"
     "strings"
     "text/template"
     "path/filepath"
@@ -130,10 +131,30 @@ func SetupCliForConfigurator(app *cli.App) {
 }
 
 func (c *Configurator) RunBeforeScript() error {
+    if c.beforeScriptFilePath != "" {
+        log.Println("[Configurator] Running before script")
+        if out, err := exec.Command(c.beforeScriptFilePath).Output(); err != nil {
+            return err
+        } else {
+            log.Println("[Configurator] Before script output:\n")
+            log.Println(string(out))
+        }
+    }
+
     return nil
 }
 
 func (c *Configurator) RunAfterScript() error {
+    if c.afterScriptFilePath != "" {
+        log.Println("[Configurator] Running after script")
+        if out, err := exec.Command(c.afterScriptFilePath).Output(); err != nil {
+            return err
+        } else {
+            log.Println("[Configurator] After script output:\n")
+            log.Println(string(out))
+        }
+    }
+
     return nil
 }
 
@@ -169,7 +190,7 @@ func findAndCreateConfigurationFileRecords(templateDir string) (files []Configur
     files = make([]ConfigurationFile, 0)
     
     templateDirComponents := strings.Split(filepath.Clean(templateDir), "/")
-    log.Println(templateDirComponents)
+
     // Walk through the template file dir
     filepath.Walk(templateDir, func(path string, f os.FileInfo, err error) error {
         if !f.Mode().IsDir() {
