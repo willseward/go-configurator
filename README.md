@@ -12,7 +12,7 @@ USAGE:
    go-configurator [global options] command [command options] [arguments...]
    
 VERSION:
-   0.4
+   0.5
    
 COMMANDS:
     update	updates the auditd configuration
@@ -27,7 +27,7 @@ GLOBAL OPTIONS:
 ```
 $ go get ./...
 $ go install .
-$ ./go-configurator update --templates=samples/templates --master --temp=samples/dist --config=samples/config.yml --test 
+$ ./go-configurator update --templates=samples/templates --temp=samples/dist --config=samples/config.yml --test 
 ```
 
 ## Building from a Dockerfile
@@ -44,3 +44,4 @@ $ docker run -v `pwd`/dist:/tmp/dist config-sample update --temp=/tmp/dist --tes
 - [X] YAML files for variables in templates
 - [ ] Intervalic updates
 - [X] Before and After scripts
+- [X] Environment Variable

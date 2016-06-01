@@ -29,6 +29,15 @@ type Configurator struct {
     afterScriptFilePath string
 }
 
+func env() map[string]string {
+    env := make(map[string]string)
+    for _, i := range os.Environ() {
+        sep := strings.Index(i, "=")
+        env[i[0:sep]] = i[sep+1:]
+    }
+    return env
+}
+
 // NewConfigurator creates and returns a new Configurator
 func NewConfigurator(buildDir string, configFiles []ConfigurationFile, config map[interface{}]interface{}) (*Configurator) {
     return &Configurator{
@@ -64,6 +73,8 @@ func SetupCliForConfigurator(app *cli.App) {
                     log.Println(err)
                     log.Fatal("[Configurator] Problem getting config from yml file")
                 }
+
+                config["Env"] = env()
                                                 
                 configurator := NewConfigurator(dist, files, config)
 
