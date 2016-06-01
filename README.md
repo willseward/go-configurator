@@ -12,7 +12,7 @@ USAGE:
    go-configurator [global options] command [command options] [arguments...]
    
 VERSION:
-   0.1
+   0.4
    
 COMMANDS:
     update	updates the auditd configuration

@@ -197,7 +197,7 @@ func findAndCreateConfigurationFileRecords(templateDir string) (files []Configur
             if strings.HasSuffix(path, ".tmpl") {
                 
                 dir, file := filepath.Split(path)
-                file = strings.TrimRight(file, ".tmpl")
+                file = strings.TrimSuffix(file, ".tmpl")
                 
                 // Remove templateDir from front of dir
                 dirComponents := strings.Split(filepath.Clean(dir), "/")

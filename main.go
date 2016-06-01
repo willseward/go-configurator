@@ -11,7 +11,7 @@ func main() {
     
     app.Name = "Docker Auditd Exporter - Host Agent"
     app.Usage = "Exports the audit reports from containers to an API"
-    app.Version = "0.3"
+    app.Version = "0.4"
     
     SetupCliForConfigurator(app)
     // SetupCliForServer(app)
