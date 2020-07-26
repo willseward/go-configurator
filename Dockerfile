@@ -2,7 +2,7 @@
 # Wills Ward
 # 03/31/16
 
-FROM golang:1.6
+FROM golang:1.13
 
 MAINTAINER William Ward <wills.e.ward@tcu.edu>
 
